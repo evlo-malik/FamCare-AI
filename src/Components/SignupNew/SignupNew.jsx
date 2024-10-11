@@ -7,7 +7,7 @@ import eye_icon from '../assets/Eye.png';
 import eye_off_icon from '../assets/Hide.png';
 import logoImage from '../assets/logo.png';
 
-function SignUpForm() {
+function SignUpForm({ onToggle }) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -26,8 +26,7 @@ function SignUpForm() {
       ...prevData,
       [name]: value
     }));
-  
-    // Check for password match when updating either the password or confirmPassword field
+
     if (name === 'confirmPassword' || name === 'password') {
       const { password, confirmPassword } = {
         ...formData,
@@ -40,7 +39,6 @@ function SignUpForm() {
       }
     }
   };
-  
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -54,43 +52,56 @@ function SignUpForm() {
     e.preventDefault();
     setLoading(true);
     setMessage('');
-  
+
     if (!agreedToTerms) {
       setMessage('Please agree to the Privacy Policy and Terms of Service.');
       setLoading(false);
       return;
     }
-  
+
     if (passwordMatchError) {
       setLoading(false);
       return;
     }
-  
+
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const response = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: 'https://famcareai.com/verification'
+          emailRedirectTo: `https://famcareai.com/verification`
         }
       });
-  
-      if (error) throw error;
-  
-      if (data) {
-        setMessage('Sign up successful! Please check your email for verification.');
-        setFormData({ email: '', password: '', confirmPassword: '' });
-  
-        // Redirect to verification page
-        window.location.href = 'https://famcareai.com/verification';
+
+      // Log the sign-up response
+      console.log('Sign-up response:', JSON.stringify(response, null, 2));
+
+      if (response.data && response.data.user) {
+        console.log('Identities array:', JSON.stringify(response.data.user.identities, null, 2));
+
+        // Check if the user got created
+        if (response.data.user.identities && response.data.user.identities.length > 0) {
+          console.log('Sign-up successful!');
+          setMessage('Sign up successful! Please check your email for verification.');
+          setFormData({ email: '', password: '', confirmPassword: '' });
+
+          // Redirect to verification page only if the user is new
+          window.location.href = 'https://famcareai.com/verification';
+        } else {
+          console.log('Email address is already taken.');
+          setMessage('This email is already registered. Please try signing in.');
+        }
+      } else {
+        console.error('An error occurred during sign-up:', response.error?.message);
+        setMessage(response.error?.message || 'An error occurred during sign-up');
       }
     } catch (error) {
-      setMessage(error.message || 'An error occurred during sign up');
+      console.error('Error during sign-up:', error);
+      setMessage(error.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="conteiner">
@@ -98,7 +109,7 @@ function SignUpForm() {
         <div className="text-center mb-4">
           <img src={logoImage} alt="FamCare AI Logo" className="logo" />
         </div>
-        <h2 className="text-2xl font-bold mb-6 text-center">Create an Account</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">Create Your Account</h2>
         {message && (
           <div className={`p-4 mb-4 text-sm rounded-lg ${message.includes('successful') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
             {message}
@@ -121,7 +132,7 @@ function SignUpForm() {
           <div className="relative">
             <img src={password_icon} alt="Password Icon" className="icon" />
             <input
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               id="password"
               name="password"
               value={formData.password}
@@ -140,7 +151,7 @@ function SignUpForm() {
           <div className="relative">
             <img src={password_icon} alt="Confirm Password Icon" className="icon" />
             <input
-              type={showConfirmPassword ? "text" : "password"}
+              type={showConfirmPassword ? 'text' : 'password'}
               id="confirmPassword"
               name="confirmPassword"
               value={formData.confirmPassword}
@@ -161,7 +172,6 @@ function SignUpForm() {
               {passwordMatchError}
             </div>
           )}
-
           <div className="flex items-center mt-4">
             <input
               type="checkbox"
@@ -177,7 +187,7 @@ function SignUpForm() {
               </a>
               and
               <a href="https://www.famcareai.com/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline ml-1">
-              Terms of Service
+                Terms of Service
               </a>.
             </label>
           </div>
@@ -190,6 +200,9 @@ function SignUpForm() {
               {loading ? 'Signing Up...' : 'Continue'}
             </button>
           </div>
+          <p className="mt-4 text-center text-sm text-blue-500">
+            <a href="#" onClick={onToggle}>Already have an account? Sign in.</a>
+          </p>
         </form>
       </div>
     </div>
@@ -197,4 +210,5 @@ function SignUpForm() {
 }
 
 export default SignUpForm;
+
 

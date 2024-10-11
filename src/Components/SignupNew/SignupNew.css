@@ -30,21 +30,21 @@
   
   .input-with-icon {
     width: 265px;
-    padding-left: 10px; /* Adjust padding to make space for the icon */
+    padding-left: 35px; /* Adjust padding to make space for the icon */
     padding-right: 5px;
     height: 40px;
     border: 1px solid #f5a623;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     font-size: 16px;
-    background-color: #f0f4f8; /* Change this to your desired background color */
+    background-color: #fff; /* Change this to your desired background color */
     color: #333; /* Text color inside the input */
   }
   
   .icon {
     position: absolute;
     top: 50%;
-    left: -25px; /* Positioning of the icon inside the input */
+    left: 7px; /* Positioning of the icon inside the input */
     transform: translateY(-50%);
     width: 20px;
     height: 20px;
