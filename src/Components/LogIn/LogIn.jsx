@@ -44,8 +44,8 @@ function LoginForm({ onToggle }) {
         // Get the access token (JWT)
         const token = data.session.access_token;
         
-        // Redirect to the intermediary page with the token
-        window.location.href = `https://yourwebsite.com/auth-bridge?token=${encodeURIComponent(token)}`;
+        // Redirect to the auth-bridge page on Vercel with the token
+        window.location.href = `https://auth.famcareai.com/AuthBridge.html?token=${encodeURIComponent(token)}`;
       }
     } catch (error) {
       setMessage(error.message || 'An error occurred during login');
