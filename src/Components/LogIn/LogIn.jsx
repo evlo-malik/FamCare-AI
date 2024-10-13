@@ -32,18 +32,20 @@ function LoginForm({ onToggle }) {
     e.preventDefault();
     setLoading(true);
     setMessage('');
-
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password
       });
-
       if (error) throw error;
-
-      if (data) {
+      if (data && data.session) {
         setMessage('Login successful!');
-        window.location.href = 'https://famcareai.com/familyhub';
+        
+        // Get the access token (JWT)
+        const token = data.session.access_token;
+        
+        // Redirect to the intermediary page with the token
+        window.location.href = `https://yourwebsite.com/auth-bridge?token=${encodeURIComponent(token)}`;
       }
     } catch (error) {
       setMessage(error.message || 'An error occurred during login');

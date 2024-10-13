@@ -73,19 +73,16 @@ function SignUpForm({ onToggle }) {
         }
       });
 
-      // Log the sign-up response
       console.log('Sign-up response:', JSON.stringify(response, null, 2));
 
       if (response.data && response.data.user) {
         console.log('Identities array:', JSON.stringify(response.data.user.identities, null, 2));
 
-        // Check if the user got created
         if (response.data.user.identities && response.data.user.identities.length > 0) {
           console.log('Sign-up successful!');
           setMessage('Sign up successful! Please check your email for verification.');
           setFormData({ email: '', password: '', confirmPassword: '' });
 
-          // Redirect to verification page only if the user is new
           window.location.href = 'https://famcareai.com/verification';
         } else {
           console.log('Email address is already taken.');
@@ -210,5 +207,3 @@ function SignUpForm({ onToggle }) {
 }
 
 export default SignUpForm;
-
-
