@@ -8,7 +8,6 @@
 <body>
     <p>Authenticating, please wait...</p>
     <script>
-        // Function to get URL parameters
         function getUrlParameter(name) {
             name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
             var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -16,29 +15,27 @@
             return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         };
 
-        // Get the token from the URL
         var token = getUrlParameter('token');
 
-        // Store the token (you might want to use sessionStorage instead)
-        localStorage.setItem('supabase.auth.token', token);
+        // Use document.cookie instead of localStorage
+        document.cookie = `supabase.auth.token=${token}; domain=.famcareai.com; path=/; secure; samesite=strict`;
 
-        // Use Softr's API to set the session
         fetch('https://api.softr.io/v1/api/sessions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authentication': `Bearer ${token}`
+                'Authentication': `Bearer ${token}`,
+                'Origin': 'https://famcareai.com'
             },
-            body: JSON.stringify({ token: token })
+            body: JSON.stringify({ token: token }),
+            credentials: 'include'
         })
         .then(response => response.json())
         .then(data => {
-            // Redirect to the Softr website
             window.location.href = 'https://famcareai.com/familyhub';
         })
         .catch(error => {
             console.error('Error:', error);
-            // Handle error (e.g., show error message to user)
         });
     </script>
 </body>
