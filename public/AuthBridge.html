@@ -32,30 +32,33 @@
             setStatus('Error: No token provided');
             setError('Token is missing from URL parameters');
         } else {
-            document.cookie = `supabase.auth.token=${token}; domain=.famcareai.com; path=/; secure; samesite=strict`;
-
             setStatus('Token received. Authenticating with Softr...');
 
-            fetch('https://api.softr.io/v1/api/sessions', {
+            // Replace 'yourdomain.softr.app' with your actual Softr domain
+            fetch('https://famcareai.com/v1/api/users/validate-token', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`, // Changed from 'Authentication' to 'Authorization'
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ token: token }),
-                credentials: 'include'
+                body: JSON.stringify({ jwt: token })
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.text().then(text => {
+                        throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+                    });
                 }
                 return response.json();
             })
             .then(data => {
                 setStatus('Authentication successful. Redirecting...');
+                console.log('Authentication response:', data);
+                // Store the validated token or user info if needed
+                // For example:
+                // localStorage.setItem('softr_user_token', token);
                 setTimeout(() => {
                     window.location.href = 'https://famcareai.com/familyhub';
-                }, 1000); // Delay redirect by 1 second to show success message
+                }, 1000);
             })
             .catch(error => {
                 setStatus('Authentication failed');
