@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authentication Bridge</title>
+    <title>Authenticating...</title>
 </head>
 <body>
     <p id="status">Authenticating, please wait...</p>
@@ -36,8 +36,8 @@
         } else {
             setStatus('Token received. Authenticating with Softr...');
 
-            // Note: This URL will be transformed by Cloudflare to https://famcareai.com/auth/v1/api/users/validate-token
-            fetch('/v1/api/users/validate-token', {
+            // Note the change in the domain here
+            fetch('https://famcareai.comp/v1/api/users/validate-token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -47,6 +47,7 @@
             })
             .then(response => {
                 console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
                 return response.text().then(text => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
