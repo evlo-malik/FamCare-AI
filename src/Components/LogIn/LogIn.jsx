@@ -45,7 +45,7 @@ function LoginForm({ onToggle }) {
         const token = data.session.access_token;
         
         // Redirect to the auth-bridge page on Vercel with the token
-        window.location.href = `https://auth.famcareai.com/AuthBridge.html?token=${encodeURIComponent(token)}`;
+        window.location.href = ` https://famcareai.com/auth?token=${encodeURIComponent(token)}`;
       }
     } catch (error) {
       setMessage(error.message || 'An error occurred during login');
