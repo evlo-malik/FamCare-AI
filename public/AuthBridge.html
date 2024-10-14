@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authenticating...</title>
+    <title>Authentication Bridge</title>
 </head>
 <body>
     <p id="status">Authenticating, please wait...</p>
@@ -28,8 +28,7 @@
         }
 
         const token = getUrlParameter('token');
-        // Replace with your actual Softr API Key
-        const apiKey = '7zHmzEUoCRx0K9X9whtjL10Ev';
+        const apiKey = '7zHmzEUoCRx0K9X9whtjL10Ev'; // Replace with your actual Softr API Key
 
         if (!token) {
             setStatus('Error: No token provided');
@@ -37,19 +36,17 @@
         } else {
             setStatus('Token received. Authenticating with Softr...');
 
-            // Replace 'famcareai.softr.app' with your actual Softr domain
-            fetch('https://famcareai.com/v1/api/users/validate-token', {
+            // Note: This URL will be transformed by Cloudflare to https://famcareai.com/auth/v1/api/users/validate-token
+            fetch('/v1/api/users/validate-token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Origin': 'https://auth.famcareai.com'
+                    'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({ jwt: token })
             })
             .then(response => {
                 console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
                 return response.text().then(text => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
