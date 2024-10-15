@@ -6,8 +6,12 @@
     <title>Authenticating...</title>
 </head>
 <body>
-    <p>Authenticating, please wait...</p>
+    <p id="status">Authenticating, please wait...</p>
+    <pre id="error" style="color: red;"></pre>
     <script>
+        const statusElement = document.getElementById('status');
+        const errorElement = document.getElementById('error');
+
         function getUrlParameter(name) {
             name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
             var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -15,28 +19,55 @@
             return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         };
 
-        var token = getUrlParameter('token');
+        function setStatus(message) {
+            statusElement.textContent = message;
+        }
 
-        // Use document.cookie instead of localStorage
-        document.cookie = `supabase.auth.token=${token}; domain=.famcareai.com; path=/; secure; samesite=strict`;
+        function setError(message) {
+            errorElement.textContent = JSON.stringify(message, null, 2);
+        }
 
-        fetch('https://api.softr.io/v1/api/sessions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authentication': `Bearer ${token}`,
-                'Origin': 'https://famcareai.com'
-            },
-            body: JSON.stringify({ token: token }),
-            credentials: 'include'
-        })
-        .then(response => response.json())
-        .then(data => {
-            window.location.href = 'https://famcareai.com/familyhub';
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        const token = getUrlParameter('token');
+        const apiKey = '7zHmzEUoCRx0K9X9whtjL10Ev'; // Replace with your actual Softr API Key
+
+        if (!token) {
+            setStatus('Error: No token provided');
+            setError('Token is missing from URL parameters');
+        } else {
+            setStatus('Token received. Authenticating with Softr...');
+
+            // Note the change in the domain here
+            fetch('https://famcareai.comp/v1/api/users/validate-token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({ jwt: token })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                return response.text().then(text => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+                    }
+                    return text ? JSON.parse(text) : {};
+                });
+            })
+            .then(data => {
+                setStatus('Authentication successful. Redirecting...');
+                console.log('Authentication response:', data);
+                setTimeout(() => {
+                    window.location.href = 'https://famcareai.com/familyhub';
+                }, 1000);
+            })
+            .catch(error => {
+                setStatus('Authentication failed');
+                setError(error.toString());
+                console.error('Error:', error);
+            });
+        }
     </script>
 </body>
 </html>
