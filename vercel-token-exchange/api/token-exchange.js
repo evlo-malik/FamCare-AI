@@ -19,34 +19,34 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { supabaseToken, userEmail } = req.body;
+  const { userEmail } = req.body;
 
-  if (!supabaseToken || !userEmail) {
-    return res.status(400).json({ error: 'Missing required parameters' });
+  if (!userEmail) {
+    return res.status(400).json({ error: 'Missing required parameter: userEmail' });
   }
 
+  const softrApiKey = process.env.SOFTR_API_KEY;
+  const softrDomain = 'famcareai.com'; // Update this if it's different
+
   try {
-    console.log('Attempting to create Softr session for email:', userEmail);
-    
-    const response = await axios.post('https://famcareai.com/v1/api/sessions', 
-      { email: userEmail },
-      { 
-        headers: { 
-          'Authorization': `Bearer ${process.env.SOFTR_API_KEY}`,
-          'Content-Type': 'application/json'
+    const response = await axios.post(
+      `https://studio-api.softr.io/v1/api/users/magic-link/generate/${encodeURIComponent(userEmail)}`,
+      {},
+      {
+        headers: {
+          'Softr-Api-Key': softrApiKey,
+          'Softr-Domain': softrDomain
         }
       }
     );
 
-    console.log('Softr API response:', response.data);
-
-    if (response.data && response.data.token) {
-      res.status(200).json({ softrToken: response.data.token });
-    } else {
-      throw new Error('Softr API did not return a token');
-    }
+    console.log('Magic link generated successfully');
+    res.status(200).json({ magicLink: response.data.magic_link });
   } catch (error) {
-    console.error('Error creating Softr session:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Failed to create Softr session', details: error.message });
+    console.error('Error generating magic link:', error.response ? error.response.data : error.message);
+    res.status(500).json({ 
+      error: 'Failed to generate magic link', 
+      details: error.response ? error.response.data : error.message 
+    });
   }
 };
