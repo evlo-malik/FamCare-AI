@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../../client';
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { Link } from 'react-router-dom';
 import email_icon from '../assets/Email.png';
 import password_icon from '../assets/Password.png';
 import eye_icon from '../assets/Eye.png';
@@ -40,12 +40,7 @@ function LoginForm({ onToggle }) {
       if (error) throw error;
       if (data && data.session) {
         setMessage('Login successful!');
-        
-        // Get the access token (JWT)
-        const token = data.session.access_token;
-        
-        // Redirect to the auth-bridge page on Vercel with the token
-        window.location.href = ` https://famcareai.com/auth?token=${encodeURIComponent(token)}`;
+        window.location.href = `https://famcareai.com/auth?token=${encodeURIComponent(data.session.access_token)}`;
       }
     } catch (error) {
       setMessage(error.message || 'An error occurred during login');
@@ -83,7 +78,7 @@ function LoginForm({ onToggle }) {
           <div className="relative">
             <img src={password_icon} alt="Password Icon" className="icon" />
             <input
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               id="password"
               name="password"
               value={formData.password}
@@ -114,7 +109,7 @@ function LoginForm({ onToggle }) {
             </Link>
           </div>
           <p className="mt-4 text-center text-sm text-blue-500">
-            <a href="#" onClick={onToggle}>Don't have an account? Sign up.</a>
+            <Link to="/signup">Don't have an account? Sign up.</Link>
           </p>
         </form>
       </div>
@@ -123,4 +118,3 @@ function LoginForm({ onToggle }) {
 }
 
 export default LoginForm;
-
