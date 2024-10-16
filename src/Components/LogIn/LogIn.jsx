@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../../client';
-import SignUpForm from '../SignupNew/SignupNew';
+import { Link } from 'react-router-dom'; // Import Link for navigation
 import email_icon from '../assets/Email.png';
 import password_icon from '../assets/Password.png';
 import eye_icon from '../assets/Eye.png';
@@ -107,16 +107,18 @@ function LoginForm({ onToggle }) {
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>
-            </div>
-        <div className="mt-4 text-center">
-          <a href="/reset-password" className="text-sm text-blue-500 hover:underline">Forgot Password?</a>
-        </div>
-        <p className="mt-4 text-center text-sm text-blue-500">
-          <a href="#" onClick={onToggle}>Don't have an account? Sign up.</a>
-        </p>
-      </form>
+          </div>
+          <div className="mt-4 text-center">
+            <Link to="/reset-password" className="text-sm text-blue-500 hover:underline">
+              Forgot Password?
+            </Link>
+          </div>
+          <p className="mt-4 text-center text-sm text-blue-500">
+            <a href="#" onClick={onToggle}>Don't have an account? Sign up.</a>
+          </p>
+        </form>
+      </div>
     </div>
-  </div>
   );
 }
 
