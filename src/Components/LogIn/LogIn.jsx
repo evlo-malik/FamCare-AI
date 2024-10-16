@@ -107,13 +107,16 @@ function LoginForm({ onToggle }) {
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>
-          </div>
-          <p className="mt-4 text-center text-sm text-blue-500">
-            <a href="#" onClick={onToggle}>Don't have an account? Sign up.</a>
-          </p>
-        </form>
-      </div>
+            </div>
+        <div className="mt-4 text-center">
+          <a href="/reset-password" className="text-sm text-blue-500 hover:underline">Forgot Password?</a>
+        </div>
+        <p className="mt-4 text-center text-sm text-blue-500">
+          <a href="#" onClick={onToggle}>Don't have an account? Sign up.</a>
+        </p>
+      </form>
     </div>
+  </div>
   );
 }
 
