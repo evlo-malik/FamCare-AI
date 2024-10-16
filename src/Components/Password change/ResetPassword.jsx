@@ -15,7 +15,7 @@ function ResetPassword() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://famcareai.com/update-password', // Change this to your own URL
+        redirectTo: 'https://auth.famcareai.com/new-password', // Change this to your own URL
       });
 
       if (error) throw error;
