@@ -8,7 +8,6 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Make the sign-up page the default route */}
         <Route path="/" element={<SignUpForm />} />
         <Route path="/signup" element={<SignUpForm />} />
         <Route path="/login" element={<LoginForm />} />
@@ -19,3 +18,4 @@ function App() {
 }
 
 export default App;
+

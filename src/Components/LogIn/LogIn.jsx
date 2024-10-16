@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { supabase } from '../../client';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // Import Link for navigation
 import email_icon from '../assets/Email.png';
 import password_icon from '../assets/Password.png';
 import eye_icon from '../assets/Eye.png';
 import eye_off_icon from '../assets/Hide.png';
 import logoImage from '../assets/logo.png';
 
-function LoginForm({ onToggle }) {
+function LoginForm() {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -40,7 +40,7 @@ function LoginForm({ onToggle }) {
       if (error) throw error;
       if (data && data.session) {
         setMessage('Login successful!');
-        window.location.href = `https://famcareai.com/auth?token=${encodeURIComponent(data.session.access_token)}`;
+        window.location.href = 'https://famcareai.com/familyhub';
       }
     } catch (error) {
       setMessage(error.message || 'An error occurred during login');
@@ -104,11 +104,10 @@ function LoginForm({ onToggle }) {
             </button>
           </div>
           <div className="mt-4 text-center">
-            <Link to="/reset-password" className="text-sm text-blue-500 hover:underline">
-              Forgot Password?
-            </Link>
+            <a href="/reset-password" className="text-sm text-blue-500 hover:underline">Forgot Password?</a>
           </div>
           <p className="mt-4 text-center text-sm text-blue-500">
+            {/* Link to the sign-up page */}
             <Link to="/signup">Don't have an account? Sign up.</Link>
           </p>
         </form>
