@@ -72,22 +72,23 @@ function SignUpForm() {
     return await response.json();
   };
 
-  const generateMagicLink = async (email) => {
-    const response = await fetch(`https://studio-api.softr.io/v1/api/users/magic-link/generate/${email}`, {
+  const triggerMagicLinkWebhook = async (email) => {
+    const response = await fetch(`https://eotqd99lvbv3qlf.m.pipedream.net`, {
       method: 'POST',
       headers: {
-        'Softr-Api-Key': 'qHww9RAOrTtfnRRpTa2Jcxk9M', // Replace with your actual Softr API key
-        'Softr-Domain': 'famcareai.com', // Replace with your actual domain
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email
+      })
     });
 
     if (!response.ok) {
-      throw new Error('Failed to generate magic link in Softr');
+      throw new Error('Failed to trigger webhook for magic link');
     }
 
-    const magicLinkResponse = await response.json();
-    return magicLinkResponse.magic_link_url; // Assume magic_link_url is part of the response
+    const webhookResponse = await response.json();
+    return webhookResponse.magic_link; // Ensure the webhook returns the magic link
   };
 
   const handleSubmit = async (e) => {
@@ -107,16 +108,18 @@ function SignUpForm() {
     }
 
     try {
-      // Softr sign-up and magic link generation
+      // Create user in Softr
       const softrResponse = await createSoftrUser(formData.email, formData.password);
-      const magicLink = await generateMagicLink(formData.email);
 
-      // Supabase sign-up with the Softr magic link as emailRedirectTo
+      // Trigger Pipedream webhook to generate a magic link
+      const magicLink = await triggerMagicLinkWebhook(formData.email);
+
+      // Sign up user in Supabase with the Softr magic link as the redirect URL
       const supabaseResponse = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: magicLink // Redirect to Softr magic link
+          emailRedirectTo: magicLink // Use the magic link as the emailRedirectTo option
         }
       });
 
@@ -234,7 +237,6 @@ function SignUpForm() {
             </button>
           </div>
           <p className="mt-4 text-center text-sm text-blue-500">
-            {/* Link to the login page */}
             <Link to="/login">Already have an account? Sign in.</Link>
           </p>
         </form>
@@ -244,3 +246,4 @@ function SignUpForm() {
 }
 
 export default SignUpForm;
+
