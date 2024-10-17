@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../../client';
 import './SignupNew.css';
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { Link } from 'react-router-dom';
 import email_icon from '../assets/Email.png';
 import password_icon from '../assets/Password.png';
 import eye_icon from '../assets/Eye.png';
@@ -49,6 +49,47 @@ function SignUpForm() {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
+  const createSoftrUser = async (email, password) => {
+    const response = await fetch('https://studio-api.softr.io/v1/api/users', {
+      method: 'POST',
+      headers: {
+        'Softr-Api-Key': 'qHww9RAOrTtfnRRpTa2Jcxk9M', // Replace with your actual Softr API key
+        'Softr-Domain': 'famcareai.com', // Replace with your actual domain
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        full_name: '-',
+        email: email,
+        password: password,
+        generate_magic_link: false // We will generate the magic link manually
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create user in Softr');
+    }
+
+    return await response.json();
+  };
+
+  const generateMagicLink = async (email) => {
+    const response = await fetch(`https://studio-api.softr.io/v1/api/users/magic-link/generate/${email}`, {
+      method: 'POST',
+      headers: {
+        'Softr-Api-Key': 'qHww9RAOrTtfnRRpTa2Jcxk9M', // Replace with your actual Softr API key
+        'Softr-Domain': 'famcareai.com', // Replace with your actual domain
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate magic link in Softr');
+    }
+
+    const magicLinkResponse = await response.json();
+    return magicLinkResponse.magic_link_url; // Assume magic_link_url is part of the response
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -66,11 +107,16 @@ function SignUpForm() {
     }
 
     try {
+      // Softr sign-up and magic link generation
+      const softrResponse = await createSoftrUser(formData.email, formData.password);
+      const magicLink = await generateMagicLink(formData.email);
+
+      // Supabase sign-up with the Softr magic link as emailRedirectTo
       const supabaseResponse = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `https://famcareai.com/verification`
+          emailRedirectTo: magicLink // Redirect to Softr magic link
         }
       });
 
@@ -83,7 +129,8 @@ function SignUpForm() {
         setMessage('This email is already registered. Please try signing in.');
       }
     } catch (error) {
-      setMessage(error.message || 'An error occurred during sign-up');
+      console.error('Error during sign-up:', error);
+      setMessage(error.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
