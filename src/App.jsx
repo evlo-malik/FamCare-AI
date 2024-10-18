@@ -12,7 +12,6 @@ function App() {
       <Routes>
         <Route path="/" element={<SignUpForm />} />
         <Route path="/signup" element={<SignUpForm />} />
-        <Route path="/login" element={<LoginForm />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/new-password" element={<UpdatePassword />} />
         <Route path="/verification" element={<Verification />} />

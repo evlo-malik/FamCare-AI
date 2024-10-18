@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../../client';
 import './SignupNew.css';
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { Link } from 'react-router-dom';
 import email_icon from '../assets/Email.png';
 import password_icon from '../assets/Password.png';
 import eye_icon from '../assets/Eye.png';
@@ -49,27 +49,31 @@ function SignUpForm() {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  const createSoftrUser = async (email, password) => {
-    const response = await fetch('https://studio-api.softr.io/v1/api/users', {
-      method: 'POST',
-      headers: {
-        'Softr-Api-Key': 'qHww9RAOrTtfnRRpTa2Jcxk9M',
-        'Softr-Domain': 'famcareai.com',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        full_name: 'none',
-        email: email,
-        password: password,
-        generate_magic_link: true
-      })
-    });
+  const triggerWebhook = async (email, password) => {
+    const data = {
+      email: email,
+      password: password,
+    };
 
-    if (!response.ok) {
-      throw new Error('Failed to create user in Softr');
+    try {
+      const response = await fetch('https://eoux9f1se81lyte.m.pipedream.net', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to trigger webhook');
+      }
+
+      const responseData = await response.json();
+      return responseData.magic_link; // Extract the magic link
+    } catch (error) {
+      console.error('Error triggering webhook:', error);
+      throw error;
     }
-
-    return await response.json();
   };
 
   const handleSubmit = async (e) => {
@@ -89,12 +93,20 @@ function SignUpForm() {
     }
 
     try {
+      // Trigger webhook to get the magic link
+      const magicLink = await triggerWebhook(formData.email, formData.password);
+      console.log('Received magic link:', magicLink);
+
+      if (!magicLink) {
+        throw new Error('Magic link not received from webhook');
+      }
+
       // Supabase sign-up
       const supabaseResponse = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `https://auth.famcareai.com/verification`
+          emailRedirectTo: magicLink // Use the magic link here
         }
       });
 
@@ -104,19 +116,10 @@ function SignUpForm() {
         if (supabaseResponse.data.user.identities && supabaseResponse.data.user.identities.length > 0) {
           console.log('Supabase sign-up successful!');
 
-          // Softr sign-up
-          try {
-            const softrResponse = await createSoftrUser(formData.email, formData.password);
-            console.log('Softr sign-up successful:', softrResponse);
+          setMessage('Sign up successful! Please check your email for verification.');
+          setFormData({ email: '', password: '', confirmPassword: '' });
 
-            setMessage('Sign up successful! Please check your email for verification.');
-            setFormData({ email: '', password: '', confirmPassword: '' });
-
-            window.location.href = 'https://famcareai.com/verification';
-          } catch (softrError) {
-            console.error('Error during Softr sign-up:', softrError);
-            setMessage('Sign-up partially successful. There was an issue with secondary registration.');
-          }
+          window.location.href = 'https://famcareai.com/verification';
         } else {
           console.log('Email address is already taken.');
           setMessage('This email is already registered. Please try signing in.');
@@ -231,8 +234,9 @@ function SignUpForm() {
             </button>
           </div>
           <p className="mt-4 text-center text-sm text-blue-500">
-            {/* Add a Link to the login page */}
-            <Link to="/login">Already have an account? Sign in.</Link>
+            <a href="https://www.famcareai.com/sign-in">
+              Already have an account? Sign in.
+            </a>
           </p>
         </form>
       </div>
