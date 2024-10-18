@@ -50,31 +50,26 @@ function SignUpForm() {
   };
 
   const createSoftrUser = async (email, password) => {
-    try {
-      const response = await fetch('https://studio-api.softr.io/v1/api/users', {
-        method: 'POST',
-        headers: {
-          'Softr-Api-Key': 'qHww9RAOrTtfnRRpTa2Jcxk9M',
-          'Softr-Domain': 'famcareai.com',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          full_name: '-',
-          email: email,
-          password: password,
-          generate_magic_link: true
-        })
-      });
+    const response = await fetch('https://studio-api.softr.io/v1/api/users', {
+      method: 'POST',
+      headers: {
+        'Softr-Api-Key': 'qHww9RAOrTtfnRRpTa2Jcxk9M',
+        'Softr-Domain': 'famcareai.com',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        full_name: 'none',
+        email: email,
+        password: password,
+        generate_magic_link: true
+      })
+    });
 
-      if (!response.ok) {
-        throw new Error('Failed to create user in Softr');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('CORS or other error:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error('Failed to create user in Softr');
     }
+
+    return await response.json();
   };
 
   const handleSubmit = async (e) => {
@@ -111,8 +106,8 @@ function SignUpForm() {
 
           // Softr sign-up
           try {
-            await createSoftrUser(formData.email, formData.password);
-            console.log('Softr sign-up successful.');
+            const softrResponse = await createSoftrUser(formData.email, formData.password);
+            console.log('Softr sign-up successful:', softrResponse);
 
             setMessage('Sign up successful! Please check your email for verification.');
             setFormData({ email: '', password: '', confirmPassword: '' });
