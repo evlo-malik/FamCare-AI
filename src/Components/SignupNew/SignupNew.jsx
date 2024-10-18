@@ -50,26 +50,31 @@ function SignUpForm() {
   };
 
   const createSoftrUser = async (email, password) => {
-    const response = await fetch('https://studio-api.softr.io/v1/api/users', {
-      method: 'POST',
-      headers: {
-        'Softr-Api-Key': 'qHww9RAOrTtfnRRpTa2Jcxk9M',
-        'Softr-Domain': 'famcareai.com',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        full_name: '-',
-        email: email,
-        password: password,
-        generate_magic_link: true
-      })
-    });
+    try {
+      const response = await fetch('https://studio-api.softr.io/v1/api/users', {
+        method: 'POST',
+        headers: {
+          'Softr-Api-Key': 'qHww9RAOrTtfnRRpTa2Jcxk9M',
+          'Softr-Domain': 'famcareai.com',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          full_name: '-',
+          email: email,
+          password: password,
+          generate_magic_link: true
+        })
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to create user in Softr');
+      if (!response.ok) {
+        throw new Error('Failed to create user in Softr');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('CORS or other error:', error);
+      throw error;
     }
-
-    return await response.json();
   };
 
   const handleSubmit = async (e) => {
@@ -101,26 +106,18 @@ function SignUpForm() {
       console.log('Supabase sign-up response:', JSON.stringify(supabaseResponse, null, 2));
 
       if (supabaseResponse.data && supabaseResponse.data.user) {
-        const userId = supabaseResponse.data.user.id; // Extract user ID
-        const emailRedirectTo = `https://auth.famcareai.com/verification?userId=${userId}`; // Include user ID in URL
-
-        // Update the email redirect to include user ID
-        await supabase.auth.updateUser({
-          emailRedirectTo
-        });
-
         if (supabaseResponse.data.user.identities && supabaseResponse.data.user.identities.length > 0) {
           console.log('Supabase sign-up successful!');
 
           // Softr sign-up
           try {
-            const softrResponse = await createSoftrUser(formData.email, formData.password);
-            console.log('Softr sign-up successful:', softrResponse);
+            await createSoftrUser(formData.email, formData.password);
+            console.log('Softr sign-up successful.');
 
             setMessage('Sign up successful! Please check your email for verification.');
             setFormData({ email: '', password: '', confirmPassword: '' });
 
-            window.location.href = 'https://famcareai.com/familyhub';
+            window.location.href = 'https://famcareai.com/verification';
           } catch (softrError) {
             console.error('Error during Softr sign-up:', softrError);
             setMessage('Sign-up partially successful. There was an issue with secondary registration.');
@@ -249,5 +246,3 @@ function SignUpForm() {
 }
 
 export default SignUpForm;
-
-
