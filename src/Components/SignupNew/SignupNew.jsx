@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../../client';
 import './SignupNew.css';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // Import Link for navigation
 import email_icon from '../assets/Email.png';
 import password_icon from '../assets/Password.png';
 import eye_icon from '../assets/Eye.png';
@@ -53,15 +53,15 @@ function SignUpForm() {
     const response = await fetch('https://studio-api.softr.io/v1/api/users', {
       method: 'POST',
       headers: {
-        'Softr-Api-Key': 'qHww9RAOrTtfnRRpTa2Jcxk9M', // Replace with your actual Softr API key
-        'Softr-Domain': 'famcareai.com', // Replace with your actual domain
+        'Softr-Api-Key': 'qHww9RAOrTtfnRRpTa2Jcxk9M',
+        'Softr-Domain': 'famcareai.com',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         full_name: '-',
         email: email,
         password: password,
-        generate_magic_link: false // We will generate the magic link manually
+        generate_magic_link: true
       })
     });
 
@@ -70,25 +70,6 @@ function SignUpForm() {
     }
 
     return await response.json();
-  };
-
-  const triggerMagicLinkWebhook = async (email) => {
-    const response = await fetch(`https://eotqd99lvbv3qlf.m.pipedream.net`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to trigger webhook for magic link');
-    }
-
-    const webhookResponse = await response.json();
-    return webhookResponse.magic_link; // Ensure the webhook returns the magic link
   };
 
   const handleSubmit = async (e) => {
@@ -108,28 +89,49 @@ function SignUpForm() {
     }
 
     try {
-      // Create user in Softr
-      const softrResponse = await createSoftrUser(formData.email, formData.password);
-
-      // Trigger Pipedream webhook to generate a magic link
-      const magicLink = await triggerMagicLinkWebhook(formData.email);
-
-      // Sign up user in Supabase with the Softr magic link as the redirect URL
+      // Supabase sign-up
       const supabaseResponse = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: magicLink // Use the magic link as the emailRedirectTo option
+          emailRedirectTo: `https://auth.famcareai.com/verification`
         }
       });
 
-      if (supabaseResponse.data && supabaseResponse.data.user) {
-        setMessage('Sign up successful! Please check your email for verification.');
-        setFormData({ email: '', password: '', confirmPassword: '' });
+      console.log('Supabase sign-up response:', JSON.stringify(supabaseResponse, null, 2));
 
-        window.location.href = 'https://famcareai.com/verification';
+      if (supabaseResponse.data && supabaseResponse.data.user) {
+        const userId = supabaseResponse.data.user.id; // Extract user ID
+        const emailRedirectTo = `https://auth.famcareai.com/verification?userId=${userId}`; // Include user ID in URL
+
+        // Update the email redirect to include user ID
+        await supabase.auth.updateUser({
+          emailRedirectTo
+        });
+
+        if (supabaseResponse.data.user.identities && supabaseResponse.data.user.identities.length > 0) {
+          console.log('Supabase sign-up successful!');
+
+          // Softr sign-up
+          try {
+            const softrResponse = await createSoftrUser(formData.email, formData.password);
+            console.log('Softr sign-up successful:', softrResponse);
+
+            setMessage('Sign up successful! Please check your email for verification.');
+            setFormData({ email: '', password: '', confirmPassword: '' });
+
+            window.location.href = 'https://famcareai.com/familyhub';
+          } catch (softrError) {
+            console.error('Error during Softr sign-up:', softrError);
+            setMessage('Sign-up partially successful. There was an issue with secondary registration.');
+          }
+        } else {
+          console.log('Email address is already taken.');
+          setMessage('This email is already registered. Please try signing in.');
+        }
       } else {
-        setMessage('This email is already registered. Please try signing in.');
+        console.error('An error occurred during sign-up:', supabaseResponse.error?.message);
+        setMessage(supabaseResponse.error?.message || 'An error occurred during sign-up');
       }
     } catch (error) {
       console.error('Error during sign-up:', error);
@@ -237,6 +239,7 @@ function SignUpForm() {
             </button>
           </div>
           <p className="mt-4 text-center text-sm text-blue-500">
+            {/* Add a Link to the login page */}
             <Link to="/login">Already have an account? Sign in.</Link>
           </p>
         </form>
@@ -246,4 +249,5 @@ function SignUpForm() {
 }
 
 export default SignUpForm;
+
 
