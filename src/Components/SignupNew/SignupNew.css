@@ -72,3 +72,40 @@
     margin-top: 0.25rem; /* Same as mt-1 */
   }
   
+  /* Add new styles for the password checklist */
+  .password-checklist {
+    background-color: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+  }
+
+  .password-checklist h4 {
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
+  .password-checklist ul {
+    list-style-type: none;
+    padding-left: 0;
+  }
+
+  .password-checklist li {
+    margin-bottom: 3px;
+    color: #666;
+  }
+
+  .password-checklist li::before {
+    content: '❌ ';
+  }
+
+  .password-checklist li.met {
+    color: #4caf50;
+  }
+
+  .password-checklist li.met::before {
+    content: '✅ ';
+  }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../client';
 import './SignupNew.css';
 import { Link } from 'react-router-dom';
@@ -20,6 +20,14 @@ function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordMatchError, setPasswordMatchError] = useState('');
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [passwordCriteria, setPasswordCriteria] = useState({
+    hasUpperCase: false,
+    hasLowerCase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+    hasMinLength: false,
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,6 +47,20 @@ function SignUpForm() {
         setPasswordMatchError('');
       }
     }
+
+    if (name === 'password') {
+      updatePasswordCriteria(value);
+    }
+  };
+
+  const updatePasswordCriteria = (password) => {
+    setPasswordCriteria({
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+      hasMinLength: password.length >= 12,
+    });
   };
 
   const togglePasswordVisibility = () => {
@@ -170,6 +192,8 @@ function SignUpForm() {
               name="password"
               value={formData.password}
               onChange={handleChange}
+              onFocus={() => setPasswordFocused(true)}
+              onBlur={() => setPasswordFocused(false)}
               required
               placeholder="Password"
               className="input-with-icon"
@@ -181,6 +205,28 @@ function SignUpForm() {
               className="eye-icon"
             />
           </div>
+          {passwordFocused && (
+            <div className="password-checklist">
+              <h4>Password must contain:</h4>
+              <ul>
+                <li className={passwordCriteria.hasUpperCase ? 'met' : ''}>
+                  At least one uppercase letter
+                </li>
+                <li className={passwordCriteria.hasLowerCase ? 'met' : ''}>
+                  At least one lowercase letter
+                </li>
+                <li className={passwordCriteria.hasNumber ? 'met' : ''}>
+                  At least one number
+                </li>
+                <li className={passwordCriteria.hasSpecialChar ? 'met' : ''}>
+                  At least one special character
+                </li>
+                <li className={passwordCriteria.hasMinLength ? 'met' : ''}>
+                  Minimum of 12 characters
+                </li>
+              </ul>
+            </div>
+          )}
           <div className="relative">
             <img src={password_icon} alt="Confirm Password Icon" className="icon" />
             <input

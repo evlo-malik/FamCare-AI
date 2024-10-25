@@ -4,8 +4,7 @@ import LoginForm from './Components/LogIn/LogIn';
 import ResetPassword from './Components/Password change/ResetPassword';
 import UpdatePassword from './Components/NewPassword/UpdatePassword';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Verification from './Components/Verification/verification';
-
+import Verification from './Components/Verification/verification'
 function App() {
   return (
     <Router>
