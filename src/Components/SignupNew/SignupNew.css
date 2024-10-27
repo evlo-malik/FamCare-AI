@@ -163,7 +163,7 @@
     .password-requirements-popup {
       position: fixed;
       left: 50%;
-      bottom: 20px; /* Position from bottom instead of center */
+      bottom: 80px; /* Position from bottom instead of center */
       top: auto; /* Remove top positioning */
       transform: translateX(-50%); /* Only transform X axis */
       width: 90%;
