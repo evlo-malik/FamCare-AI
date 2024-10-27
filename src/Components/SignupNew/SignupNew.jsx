@@ -160,7 +160,7 @@ function SignUpForm() {
 
   return (
     <div className="conteiner">
-      <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+      <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md relative">
         <div className="text-center mb-4">
           <img src={logoImage} alt="FamCare AI Logo" className="logo" />
         </div>
@@ -204,29 +204,29 @@ function SignUpForm() {
               onClick={togglePasswordVisibility}
               className="eye-icon"
             />
+            {passwordFocused && (
+              <div className="password-requirements-popup">
+                <h4>Password must contain:</h4>
+                <ul>
+                  <li className={passwordCriteria.hasUpperCase ? 'met' : ''}>
+                    At least one uppercase letter
+                  </li>
+                  <li className={passwordCriteria.hasLowerCase ? 'met' : ''}>
+                    At least one lowercase letter
+                  </li>
+                  <li className={passwordCriteria.hasNumber ? 'met' : ''}>
+                    At least one number
+                  </li>
+                  <li className={passwordCriteria.hasSpecialChar ? 'met' : ''}>
+                    At least one special character
+                  </li>
+                  <li className={passwordCriteria.hasMinLength ? 'met' : ''}>
+                    Minimum of 12 characters
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
-          {passwordFocused && (
-            <div className="password-checklist">
-              <h4>Password must contain:</h4>
-              <ul>
-                <li className={passwordCriteria.hasUpperCase ? 'met' : ''}>
-                  At least one uppercase letter
-                </li>
-                <li className={passwordCriteria.hasLowerCase ? 'met' : ''}>
-                  At least one lowercase letter
-                </li>
-                <li className={passwordCriteria.hasNumber ? 'met' : ''}>
-                  At least one number
-                </li>
-                <li className={passwordCriteria.hasSpecialChar ? 'met' : ''}>
-                  At least one special character
-                </li>
-                <li className={passwordCriteria.hasMinLength ? 'met' : ''}>
-                  Minimum of 12 characters
-                </li>
-              </ul>
-            </div>
-          )}
           <div className="relative">
             <img src={password_icon} alt="Confirm Password Icon" className="icon" />
             <input

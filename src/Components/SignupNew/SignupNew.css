@@ -109,3 +109,66 @@
   .password-checklist li.met::before {
     content: '✅ ';
   }
+
+  .password-requirements-popup {
+    position: absolute;
+    left: calc(100% + 20px);  /* Position it to the right of the input */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 250px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    border: 1px solid #e5e7eb;
+  }
+
+  .password-requirements-popup h4 {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .password-requirements-popup ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .password-requirements-popup li {
+    padding: 4px 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .password-requirements-popup li::before {
+    content: "●";
+    color: #d1d5db;
+    margin-right: 8px;
+  }
+
+  .password-requirements-popup li.met {
+    color: #059669;
+  }
+
+  .password-requirements-popup li.met::before {
+    color: #059669;
+  }
+
+  /* Add media query for mobile responsiveness */
+  @media (max-width: 768px) {
+    .password-requirements-popup {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 300px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+  }
