@@ -100,21 +100,16 @@
 
                 messageElement.textContent = 'Verifying your email...';
 
-                // Verify the user's email
-                const { data: verifyData, error: verifyError } = await supabaseClient.auth.verifyUser(accessToken);
+                // Get user data directly using the JWT token
+                const { data: { user } } = await supabaseClient.auth.getUser(accessToken);
                 
-                if (verifyError) throw verifyError;
-
-                // Get user data
-                const { data: { user }, error: userError } = await supabaseClient.auth.getUser(accessToken);
-                
-                if (userError || !user) {
-                    throw userError || new Error('User not found');
+                if (!user) {
+                    throw new Error('User not found');
                 }
 
                 messageElement.textContent = 'Almost done...';
 
-                // Fetch the magic link
+                // Check if user has magic_link in users table
                 const { data: userData, error: fetchError } = await supabaseClient
                     .from('users')
                     .select('magic_link')
@@ -122,11 +117,12 @@
                     .single();
 
                 if (fetchError || !userData?.magic_link) {
-                    throw fetchError || new Error('Magic link not found');
+                    // If no magic link found, redirect to default success page
+                    window.location.href = 'https://famcareai.com/dashboard';
+                } else {
+                    // If magic link exists, redirect to it
+                    window.location.href = userData.magic_link;
                 }
-
-                // Redirect to the magic link
-                window.location.href = userData.magic_link;
 
             } catch (error) {
                 console.error('Verification error:', error);
