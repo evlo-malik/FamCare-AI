@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Verification - FamCare AI</title>
+    <link rel="icon" href="data:,">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body {
@@ -77,16 +78,18 @@
     </div>
 
     <script>
-        const supabase = supabase.createClient(
-            'https://qaytvdmgjlmtvifqkptu.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFheXR2ZG1namxtdHZpZnFrcHR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY5NDUyMDksImV4cCI6MjA0MjUyMTIwOX0.b6c5J-jLHZJF9PqRhR_w401xjJ5RhDzdKWvQwyt-wWE'
-        );
-
-        async function handleVerification() {
-            const errorDiv = document.getElementById('error');
-            const messageElement = document.querySelector('.message');
-
+        window.addEventListener('load', async function() {
             try {
+                // Create Supabase client after the script is loaded
+                const { createClient } = supabase;
+                const supabaseClient = createClient(
+                    'https://qaytvdmgjlmtvifqkptu.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFheXR2ZG1namxtdHZpZnFrcHR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY5NDUyMDksImV4cCI6MjA0MjUyMTIwOX0.b6c5J-jLHZJF9PqRhR_w401xjJ5RhDzdKWvQwyt-wWE'
+                );
+
+                const errorDiv = document.getElementById('error');
+                const messageElement = document.querySelector('.message');
+
                 // Extract token from URL hash
                 const hashParams = new URLSearchParams(window.location.hash.substr(1));
                 const accessToken = hashParams.get('access_token');
@@ -98,12 +101,12 @@
                 messageElement.textContent = 'Verifying your email...';
 
                 // Verify the user's email
-                const { data: verifyData, error: verifyError } = await supabase.auth.verifyUser(accessToken);
+                const { data: verifyData, error: verifyError } = await supabaseClient.auth.verifyUser(accessToken);
                 
                 if (verifyError) throw verifyError;
 
                 // Get user data
-                const { data: { user }, error: userError } = await supabase.auth.getUser(accessToken);
+                const { data: { user }, error: userError } = await supabaseClient.auth.getUser(accessToken);
                 
                 if (userError || !user) {
                     throw userError || new Error('User not found');
@@ -112,7 +115,7 @@
                 messageElement.textContent = 'Almost done...';
 
                 // Fetch the magic link
-                const { data: userData, error: fetchError } = await supabase
+                const { data: userData, error: fetchError } = await supabaseClient
                     .from('users')
                     .select('magic_link')
                     .eq('id', user.id)
@@ -128,14 +131,11 @@
             } catch (error) {
                 console.error('Verification error:', error);
                 document.querySelector('.spinner').style.display = 'none';
-                messageElement.style.display = 'none';
-                errorDiv.textContent = 'There was an error verifying your email. Please try again or contact support.';
-                errorDiv.style.display = 'block';
+                document.querySelector('.message').style.display = 'none';
+                document.getElementById('error').textContent = 'There was an error verifying your email. Please try again or contact support.';
+                document.getElementById('error').style.display = 'block';
             }
-        }
-
-        // Start verification when page loads
-        document.addEventListener('DOMContentLoaded', handleVerification);
+        });
     </script>
 </body>
 </html>
