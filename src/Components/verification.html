@@ -114,16 +114,40 @@
 
                 messageElement.textContent = 'Getting user data...';
 
-                // Get user data using the JWT token
-                const response = await supabaseClient.auth.getUser(jwt);
+                // First get auth user data
+                const authResponse = await supabaseClient.auth.getUser(jwt);
+                const userId = authResponse.data.user.id;
 
-                // Hide spinner and message
+                messageElement.textContent = 'Fetching profile data...';
+
+                // Then fetch from profiles table
+                const { data: profileData, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                // Combine the responses for display
+                const fullResponse = {
+                    auth: authResponse,
+                    profile: {
+                        data: profileData,
+                        error: profileError
+                    }
+                };
+
+                // Hide spinner and update message
                 spinner.style.display = 'none';
-                messageElement.textContent = 'Authentication Response:';
+                messageElement.textContent = 'Verification Complete - Debug Information:';
 
-                // Display the full response
-                responseDiv.textContent = JSON.stringify(response, null, 2);
+                // Display the full response for debugging
+                responseDiv.textContent = JSON.stringify(fullResponse, null, 2);
                 responseDiv.style.display = 'block';
+
+                // If we have a magic_link in the profile, we can use it later for redirect
+                if (profileData?.magic_link) {
+                    console.log('Found magic_link:', profileData.magic_link);
+                }
 
             } catch (error) {
                 console.error('Verification error:', error);
