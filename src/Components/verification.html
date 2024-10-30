@@ -92,16 +92,21 @@
 
                 // Extract token from URL hash
                 const hashParams = new URLSearchParams(window.location.hash.substr(1));
-                const accessToken = hashParams.get('access_token');
+                const jwt = hashParams.get('access_token');
 
-                if (!accessToken) {
+                if (!jwt) {
                     throw new Error('No verification token found in URL');
                 }
 
                 messageElement.textContent = 'Verifying your email...';
 
-                // Get user data directly using the JWT token
-                const { data: { user } } = await supabaseClient.auth.getUser(accessToken);
+                // Log for debugging
+                console.log('Using JWT:', jwt);
+
+                // Get user data using the JWT token
+                const { data: { user } } = await supabaseClient.auth.getUser(jwt);
+
+                console.log('User data:', user);
                 
                 if (!user) {
                     throw new Error('User not found');
@@ -118,7 +123,7 @@
 
                 if (fetchError || !userData?.magic_link) {
                     // If no magic link found, redirect to default success page
-                    window.location.href = 'https://famcareai.com/dashboard';
+                    window.location.href = 'https://famcareai.com/unauthorized-access';
                 } else {
                     // If magic link exists, redirect to it
                     window.location.href = userData.magic_link;
