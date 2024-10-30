@@ -13,30 +13,11 @@ function UpdatePassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordMatchError, setPasswordMatchError] = useState('');
-  const [passwordFocused, setPasswordFocused] = useState(false);
-  const [passwordCriteria, setPasswordCriteria] = useState({
-    hasUpperCase: false,
-    hasLowerCase: false,
-    hasNumber: false,
-    hasSpecialChar: false,
-    hasMinLength: false,
-  });
-
-  const updatePasswordCriteria = (password) => {
-    setPasswordCriteria({
-      hasUpperCase: /[A-Z]/.test(password),
-      hasLowerCase: /[a-z]/.test(password),
-      hasNumber: /[0-9]/.test(password),
-      hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
-      hasMinLength: password.length >= 12,
-    });
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'newPassword') {
       setNewPassword(value);
-      updatePasswordCriteria(value);
     } else {
       setConfirmPassword(value);
     }
@@ -107,8 +88,6 @@ function UpdatePassword() {
               name="newPassword"
               value={newPassword}
               onChange={handleChange}
-              onFocus={() => setPasswordFocused(true)}
-              onBlur={() => setPasswordFocused(false)}
               required
               placeholder="New Password"
               className="input-with-icon"
@@ -119,28 +98,6 @@ function UpdatePassword() {
               onClick={togglePasswordVisibility}
               className="eye-icon"
             />
-            {passwordFocused && (
-              <div className="password-requirements-popup">
-                <h4>Password must contain:</h4>
-                <ul>
-                  <li className={passwordCriteria.hasUpperCase ? 'met' : ''}>
-                    At least one uppercase letter
-                  </li>
-                  <li className={passwordCriteria.hasLowerCase ? 'met' : ''}>
-                    At least one lowercase letter
-                  </li>
-                  <li className={passwordCriteria.hasNumber ? 'met' : ''}>
-                    At least one number
-                  </li>
-                  <li className={passwordCriteria.hasSpecialChar ? 'met' : ''}>
-                    At least one special character
-                  </li>
-                  <li className={passwordCriteria.hasMinLength ? 'met' : ''}>
-                    Minimum of 12 characters
-                  </li>
-                </ul>
-              </div>
-            )}
           </div>
           <div className="relative">
             <img src={password_icon} alt="Confirm Password Icon" className="icon" />
