@@ -24,7 +24,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             text-align: center;
-            max-width: 800px;
+            max-width: 400px;
             width: 90%;
         }
 
@@ -42,17 +42,6 @@
         .message {
             color: #666;
             margin-bottom: 1.5rem;
-        }
-
-        .response {
-            text-align: left;
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-            overflow-x: auto;
-            white-space: pre;
-            font-family: monospace;
-            margin-top: 1rem;
         }
 
         .spinner {
@@ -86,74 +75,46 @@
         <div class="spinner"></div>
         <p class="message">Please wait while we verify your email address...</p>
         <div id="error" class="error" style="display: none;"></div>
-        <div id="response" class="response" style="display: none;"></div>
     </div>
 
     <script>
         window.addEventListener('load', async function() {
             try {
-                // Create Supabase client after the script is loaded
                 const { createClient } = supabase;
                 const supabaseClient = createClient(
                     'https://qaytvdmgjlmtvifqkptu.supabase.co',
                     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFheXR2ZG1namxtdHZpZnFrcHR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY5NDUyMDksImV4cCI6MjA0MjUyMTIwOX0.b6c5J-jLHZJF9PqRhR_w401xjJ5RhDzdKWvQwyt-wWE'
                 );
 
-                const errorDiv = document.getElementById('error');
-                const messageElement = document.querySelector('.message');
-                const responseDiv = document.getElementById('response');
-                const spinner = document.querySelector('.spinner');
-
-                // Extract token from URL hash
                 const hashParams = new URLSearchParams(window.location.hash.substr(1));
                 const jwt = hashParams.get('access_token');
 
                 if (!jwt) {
-                    throw new Error('No verification token found in URL');
+                    throw new Error('No verification token found');
                 }
 
-                messageElement.textContent = 'Getting user data...';
+                const { data: { user } } = await supabaseClient.auth.getUser(jwt);
+                
+                if (!user) {
+                    throw new Error('User not found');
+                }
 
-                // First get auth user data
-                const authResponse = await supabaseClient.auth.getUser(jwt);
-                const userId = authResponse.data.user.id;
-
-                messageElement.textContent = 'Fetching profile data...';
-
-                // Then fetch from profiles table
                 const { data: profileData, error: profileError } = await supabaseClient
                     .from('users2')
-                    .select('*')
-                    .eq('id', userId)
+                    .select('magic_link')
+                    .eq('id', user.id)
                     .single();
 
-                // Combine the responses for display
-                const fullResponse = {
-                    auth: authResponse,
-                    profile: {
-                        data: profileData,
-                        error: profileError
-                    }
-                };
-
-                // Hide spinner and update message
-                spinner.style.display = 'none';
-                messageElement.textContent = 'Verification Complete - Debug Information:';
-
-                // Display the full response for debugging
-                responseDiv.textContent = JSON.stringify(fullResponse, null, 2);
-                responseDiv.style.display = 'block';
-
-                // If we have a magic_link in the profile, we can use it later for redirect
-                if (profileData?.magic_link) {
-                    console.log('Found magic_link:', profileData.magic_link);
+                if (profileError || !profileData?.magic_link) {
+                    throw new Error('We are currently facing an issue with our server. Please try again later.');
                 }
 
+                window.location.href = profileData.magic_link;
+
             } catch (error) {
-                console.error('Verification error:', error);
                 document.querySelector('.spinner').style.display = 'none';
                 document.querySelector('.message').style.display = 'none';
-                document.getElementById('error').textContent = 'Error: ' + error.message;
+                document.getElementById('error').textContent = 'Verification failed. Please try again or contact support.';
                 document.getElementById('error').style.display = 'block';
             }
         });
