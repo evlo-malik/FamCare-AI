@@ -8,18 +8,36 @@ function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
+  const generateToken = () => {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
-
+    
     try {
+      // Generate a unique token
+      const resetToken = generateToken();
+      
+      // Update the specific row in users2 table where email matches
+      const { error: dbError } = await supabase
+        .from('users2')
+        .update({ password_reset_token: resetToken })
+        .eq('email', email);
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw new Error('Failed to process reset request. Please try again.');
+      }
+
+      // Send password reset email
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://auth.famcareai.com/new-password', // Change this to your own URL
+        redirectTo: `https://auth.famcareai.com/new-password?token=${resetToken}`,
       });
 
       if (error) throw error;
-
       setMessage('Password reset email sent! Please check your email.');
     } catch (error) {
       setMessage(error.message || 'Error requesting password reset.');
@@ -70,5 +88,4 @@ function ResetPassword() {
 }
 
 export default ResetPassword;
-
 
