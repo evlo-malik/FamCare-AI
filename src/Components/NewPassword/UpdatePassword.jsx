@@ -109,12 +109,18 @@ function UpdatePassword() {
         })
       });
       
-      if (!response.ok) {
-        throw new Error('Webhook call failed');
+      // Wait for the webhook response
+      const responseData = await response.json();
+      
+      // Make will send { success: true } in the webhook response
+      if (!responseData.success) {
+        throw new Error(responseData.error || 'Webhook processing failed');
       }
+
+      return true;
     } catch (error) {
       console.error('Webhook error:', error);
-      // We don't throw here as we don't want to affect the user experience
+      throw error;
     }
   };
 
@@ -143,16 +149,16 @@ function UpdatePassword() {
 
       if (updateError) throw updateError;
 
-      // Clear the reset token from the database
+      // Wait for webhook to complete
+      await callWebhook(newPassword, token);
+
+      // If webhook was successful (no error thrown), clear the token
       const { error: tokenError } = await supabase
         .from('users2')
         .update({ password_reset_token: null })
         .eq('email', userEmail);
 
       if (tokenError) throw tokenError;
-
-      // Call the webhook
-      await callWebhook(newPassword, token);
 
       setMessage('Password updated successfully!');
       setNewPassword('');
@@ -168,6 +174,7 @@ function UpdatePassword() {
       setLoading(false);
     }
   };
+
 
   if (!isTokenValid) {
     return (
