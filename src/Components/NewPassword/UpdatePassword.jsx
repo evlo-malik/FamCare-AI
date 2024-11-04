@@ -166,7 +166,7 @@ function UpdatePassword() {
       
       // Redirect to login page after successful update
       setTimeout(() => {
-        navigate('/sign-in');
+        window.location.href = 'http://famcareai.com/sign-in';
       }, 2000);
     } catch (error) {
       setMessage(error.message || 'Error updating password');
