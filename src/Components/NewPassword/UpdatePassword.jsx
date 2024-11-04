@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../client';
 import password_icon from '../assets/Password.png';
 import eye_icon from '../assets/Eye.png';
@@ -6,6 +7,9 @@ import eye_off_icon from '../assets/Hide.png';
 import logoImage from '../assets/logo.png';
 
 function UpdatePassword() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [token, setToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,6 +18,8 @@ function UpdatePassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordMatchError, setPasswordMatchError] = useState('');
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [isTokenValid, setIsTokenValid] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const [passwordCriteria, setPasswordCriteria] = useState({
     hasUpperCase: false,
     hasLowerCase: false,
@@ -21,6 +27,38 @@ function UpdatePassword() {
     hasSpecialChar: false,
     hasMinLength: false,
   });
+
+  useEffect(() => {
+    const validateToken = async () => {
+      const urlToken = searchParams.get('token');
+      if (!urlToken) {
+        setMessage('Invalid reset link');
+        return;
+      }
+
+      try {
+        // Check if token exists in the database
+        const { data, error } = await supabase
+          .from('users2')
+          .select('email')
+          .eq('password_reset_token', urlToken)
+          .single();
+
+        if (error || !data) {
+          setMessage('Invalid or expired reset link');
+          return;
+        }
+
+        setToken(urlToken);
+        setIsTokenValid(true);
+        setUserEmail(data.email);
+      } catch (error) {
+        setMessage('Error validating reset link');
+      }
+    };
+
+    validateToken();
+  }, [searchParams]);
 
   const updatePasswordCriteria = (password) => {
     setPasswordCriteria({
@@ -58,6 +96,28 @@ function UpdatePassword() {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
+  const callWebhook = async (password, token) => {
+    try {
+      const response = await fetch('https://hook.eu2.make.com/qy1twn3mhj5foud7dj7udsscfq8bgshs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          password,
+          token
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Webhook call failed');
+      }
+    } catch (error) {
+      console.error('Webhook error:', error);
+      // We don't throw here as we don't want to affect the user experience
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -69,22 +129,58 @@ function UpdatePassword() {
       return;
     }
 
+    if (!isTokenValid) {
+      setLoading(false);
+      setMessage('Invalid reset link');
+      return;
+    }
+
     try {
-      const { error } = await supabase.auth.updateUser({
+      // Update password in Supabase Auth
+      const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword
       });
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Clear the reset token from the database
+      const { error: tokenError } = await supabase
+        .from('users2')
+        .update({ password_reset_token: null })
+        .eq('email', userEmail);
+
+      if (tokenError) throw tokenError;
+
+      // Call the webhook
+      await callWebhook(newPassword, token);
 
       setMessage('Password updated successfully!');
       setNewPassword('');
       setConfirmPassword('');
+      
+      // Redirect to login page after successful update
+      setTimeout(() => {
+        navigate('/sign-in');
+      }, 2000);
     } catch (error) {
       setMessage(error.message || 'Error updating password');
     } finally {
       setLoading(false);
     }
   };
+
+  if (!isTokenValid) {
+    return (
+      <div className="conteiner">
+        <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+          <div className="text-center mb-4">
+            <img src={logoImage} alt="FamCare AI Logo" className="logo" />
+          </div>
+          <div className="text-red-600 text-center">{message}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="conteiner">

@@ -18,55 +18,40 @@ function ResetPassword() {
     setMessage('');
     
     try {
-      // First, let's log all users in the table for debugging
-      const { data: allUsers, error: fetchError } = await supabase
-        .from('users2')
-        .select('*');
-
-      console.log('All users in users2 table:', allUsers);
-      console.log('Searching for email:', email);
-
-      if (fetchError) {
-        console.error('Error fetching users:', fetchError);
-        throw new Error('Error accessing database');
-      }
-
-      // Check if email exists
+      // First, check if the email exists in users2 table
       const { data: existingUser, error: checkError } = await supabase
         .from('users2')
-        .select('*')  // Changed to select all fields for debugging
-        .eq('email', email.toLowerCase().trim())  // Added toLowerCase() and trim()
-        .maybeSingle();  // Using maybeSingle() instead of single()
+        .select('email')
+        .eq('email', email)
+        .single();
 
-      console.log('Existing user query result:', existingUser);
-      console.log('Check error:', checkError);
-
-      if (!existingUser) {
-        console.log('User not found in database');
-        throw new Error('Email not found in our records. Please check the email address.');
+      if (checkError || !existingUser) {
+        console.log('User check error:', checkError);
+        throw new Error('Email not found in our records');
       }
 
       // Generate a unique token
       const resetToken = generateToken();
-      console.log('Generated token:', resetToken);
       
       // Update the token in the database
-      const { data: updateData, error: updateError } = await supabase
+      const { data, error: updateError } = await supabase
         .from('users2')
-        .update({ 
-          password_reset_token: resetToken 
-        })
-        .eq('email', email.toLowerCase().trim())
+        .update({ password_reset_token: resetToken })
+        .eq('email', email)
         .select();
 
-      console.log('Update response:', { updateData, updateError });
+      console.log('Update response:', { data, updateError }); // For debugging
 
       if (updateError) {
         console.error('Update error:', updateError);
         throw new Error('Failed to process reset request');
       }
 
-      // Send password reset email
+      if (!data || data.length === 0) {
+        throw new Error('Failed to update record');
+      }
+
+      // Send password reset email only if database update was successful
       const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `https://auth.famcareai.com/new-password?token=${resetToken}`,
       });
