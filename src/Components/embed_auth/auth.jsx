@@ -1,62 +1,64 @@
 import { useState, useEffect } from 'react';
 
 const AuthStatusPage = () => {
-  const [authStatus, setAuthStatus] = useState({
-    isAuthenticated: false,
-    userId: null,
-    error: null,
-    isLoading: true
-  });
-
-  useEffect(() => {
-    const validateToken = async () => {
-      try {
-        // Get JWT token from URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-
-        if (!token) {
-          throw new Error('No token provided in URL');
-        }
-
-        // Get the domain from the referrer or default to a placeholder
-        const domain = document.referrer 
-          ? new URL(document.referrer).hostname 
-          : 'yourdomain.softr.app';
-
-        // Make the validation request
-        const response = await fetch(`https://${domain}/v1/api/users/validate-token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ jwt: token }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Token validation failed');
-        }
-
-        const data = await response.json();
-        console.log('API Response:', data);
-        setAuthStatus({
+    const [authStatus, setAuthStatus] = useState({
+      isAuthenticated: false,
+      userId: null,
+      error: null,
+      isLoading: true
+    });
+  
+    useEffect(() => {
+      const validateToken = async () => {
+        try {
+          // Get JWT token from URL parameters
+          const urlParams = new URLSearchParams(window.location.search);
+          const token = urlParams.get('token');
+  
+          if (!token) {
+            throw new Error('No token provided in URL');
+          }
+  
+          // Get the domain from the referrer or default to a placeholder
+          const domain = document.referrer 
+            ? new URL(document.referrer).hostname 
+            : 'yourdomain.softr.app';
+  
+          // Make the validation request
+          const response = await fetch(`https://${domain}/v1/api/users/validate-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ jwt: token }),
+          });
+  
+          if (!response.ok) {
+            throw new Error('Token validation failed');
+          }
+  
+          // Get user info from window.logged_in_user
+          const userInfo = window.logged_in_user;
+          const userId = userInfo?.id || 'Unknown';
+  
+          setAuthStatus({
             isAuthenticated: true,
-            userId: data.user_id || data.userId, // Make sure this matches the API response
+            userId: userId,
             error: null,
             isLoading: false
-        });
-      } catch (error) {
-        setAuthStatus({
-          isAuthenticated: false,
-          userId: null,
-          error: error.message,
-          isLoading: false
-        });
-      }
-    };
-
-    validateToken();
-  }, []);
+          });
+        } catch (error) {
+          setAuthStatus({
+            isAuthenticated: false,
+            userId: null,
+            error: error.message,
+            isLoading: false
+          });
+        }
+      };
+  
+      validateToken();
+    }, []);
 
   if (authStatus.isLoading) {
     return (
