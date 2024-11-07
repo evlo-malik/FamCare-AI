@@ -38,11 +38,12 @@ const AuthStatusPage = () => {
         }
 
         const data = await response.json();
+        console.log('API Response:', data);
         setAuthStatus({
-          isAuthenticated: true,
-          userId: data.user_id || data.userId,
-          error: null,
-          isLoading: false
+            isAuthenticated: true,
+            userId: data.user_id || data.userId, // Make sure this matches the API response
+            error: null,
+            isLoading: false
         });
       } catch (error) {
         setAuthStatus({
